@@ -1,6 +1,6 @@
 # 41443136
 
-作業一：問題一（阿克曼函數 Ackermann's Function）
+問題一（阿克曼函數 Ackermann's Function）
 
 ## 解題說明
 
@@ -8,14 +8,21 @@
 
 ### 解題策略
 
-1. **遞迴版本**：
-   根據題目定義，將問題拆解為三種情況：
-   * 當 $m = 0$ 時，回傳 $n + 1$。
-   * 當 $m > 0$ 且 $n = 0$ 時，呼叫 $A(m-1, 1)$。
-   * 其他情況，呼叫 $A(m-1, A(m, n-1))$。主程式只需準備 $m, n$ 並呼叫函式完成所有遞迴計算。
-2. **非遞迴版本**：
-   在禁用 `<stack>` 的情況下，使用動態陣列 `int* s = new int[capacity]` 與指標 `top` 來自行模擬 Stack 行為。
-   透過 `while(top >= 0)` 不斷從 Stack 取出未完成的 $m$，並依據 $m=0, n=0$ 或其他情況改變 $n$ 並推入新的狀態，直到 Stack 清空。
+主要概念：遞迴 (Recursion)
+
+這題的解題邏輯很像在做「是非題」。我們針對集合裡面的每一個字母，都去問「要」還是「不要」，把所有可能的組合都走過一遍。
+
+具體步驟：
+
+整理資料：先把使用者輸入的字母排好順序，並且把重複的字母剔除掉，確保資料是乾淨的。
+
+遞迴做選擇：寫一個遞迴函式，每一次面對一個字母時，程式都會走兩條路：
+
+第一條路：不選這個字母，直接前往下一個字母。
+
+第二條路：選這個字母，把它記錄下來，然後前往下一個字母。
+
+印出結果：當所有的字母都決定好「選或不選」之後，就把有被選到的字母加上括號印出來。接著程式會自動退回上一部，繼續嘗試其他的選擇，直到所有組合都印完。
 
 ## 程式實作
 
@@ -23,10 +30,9 @@
 
 ```cpp
 #include <iostream>
-
 using namespace std;
 
-// 遞迴版本
+// 遞迴版
 int ackermann_recursive(int m, int n) {
     if (m == 0)
         return n + 1;
@@ -61,32 +67,46 @@ int ackermann_nonrecursive(int m, int n) {
     int* s = new int[capacity];
 
     push_stack(s, top, capacity, m);
-
     while (top >= 0) {
         m = pop_stack(s, top);
 
         if (m == 0) {
             n++;
-        } else if (n == 0) {
+        }
+        else if (n == 0) {
             n = 1;
             push_stack(s, top, capacity, m - 1);
-        } else {
+        }
+        else {
             n--;
             push_stack(s, top, capacity, m - 1);
             push_stack(s, top, capacity, m);
         }
     }
-    
     delete[] s;
     return n;
 }
 
 int main() {
-    int m = 2, n = 2;
-    cout << "Ackermann Recursive A(" << m << ", " << n << ") = " 
-         << ackermann_recursive(m, n) << '\n';
-    cout << "Ackermann Non-recursive A(" << m << ", " << n << ") = " 
-         << ackermann_nonrecursive(m, n) << '\n';
+    int m, n;
+    cout << "Enter m and n (for example: 2 2): ";
+    
+    while (cin >> m >> n) {
+        
+        if (m < 0 || n < 0) {
+            cout << "Please enter non-negative integers.\n";
+            cout << "Enter m and n (for example: 2 2): ";
+            continue; 
+        }
+
+        cout << "Ackermann Recursive A(" << m << ", " << n << ") = "
+             << ackermann_recursive(m, n) << '\n';
+        cout << "Ackermann Non-recursive A(" << m << ", " << n << ") = "
+             << ackermann_nonrecursive(m, n) << "\n\n";
+             
+        cout << "Enter m and n (for example: 2 2): ";
+    }
+    
     return 0;
 }
 ```
@@ -118,37 +138,36 @@ Ackermann Non-recursive A(2, 2) = 7
 
 ### 結論
 
-1. 遞迴與非遞迴版本皆能正確計算阿克曼函數的值。
-2. 透過動態陣列自製 Stack，成功避開了 C++ 標準模板庫的限制，並以擴充容量機制解決了預設 $capacity=16$ 可能不足的問題。
-3. 測試案例涵蓋了不同層級的增長幅度，驗證了演算法在小數值下的正確性。
+1. 程式能準確計算出 Ackermann 函數的結果。
+2. 具備防呆機制，若使用者輸入負數（不符合函數規定），會要求重新輸入。
+3. 成功實作了「遞迴」與「非遞迴（自建堆疊）」兩種版本，兩種算出來的答案完全一致。
 
 ## 申論及開發報告
 
 ### 遞迴與非遞迴實作的設計取捨
 
-在本程式中，探討遞迴與非遞迴計算阿克曼函數的主要心得如下：
+遞迴與自建堆疊的選擇與比較
+在實作這題的過程中，我們對比了兩種寫法的優缺點：
 
-1. **遞迴程式邏輯簡單直觀**
-   遞迴版本完美貼合了數學定義，程式碼簡潔易懂。但由於阿克曼函數是非原始遞迴函數，其巢狀呼叫會迅速消耗系統 Call Stack，極易導致 Stack Overflow。
-2. **非遞迴陣列模擬的必要性**
-   為了在不能使用 `<stack>` 的情況下解決遞迴深度的限制，採用動態配置 `int* s = new int[capacity]` 來將記憶體需求轉移至 Heap 區段。
-   透過 `push_stack` 與 `pop_stack` 集中管理未處理的 $m$ 值，雖然程式碼較為冗長，但能更安全地掌控記憶體的運用，是學習底層資料結構操作的極佳實踐。
+1. 遞迴版的優點：最直觀的數學翻譯
+   遞迴版的寫法非常簡單，基本是把數學公式翻譯成程式碼：
+      if (m == 0) return n + 1;
+   這種寫法完全不需要動腦筋去設計額外的變數，對於把數學公式轉換成程式來說，是最好懂的方法。
+
+2. 遞迴版的致命缺點：容易當機 (Stack Overflow)
+   Ackermann 是一個計算層數極度誇張的函數。如果只依賴電腦系統來做遞迴，當數字稍微大一點（例如 m=4, n=1），電腦用來記錄計算過程的記憶體空間很快就會塞爆，導致程式直接當機崩潰。
+
+3. 非遞迴版（自建堆疊）的突破
+   為了解決遞迴會當機的問題，我們改用一個陣列來自己做「堆疊 (Stack)」。我們把還沒算完的數字先塞進陣列裡，慢慢拿出來算。
+   雖然這種寫法比較複雜、程式碼也變長了，但因為我們使用的是電腦裡空間比較大的記憶體區域（Heap），所以成功突破了系統限制，讓程式算得更安全、不會當機。這展現了為了「系統穩定性」而犧牲一點「程式易    讀性」的實際開發考量。
 
 ---
 
-# 41143263
-
-作業一：問題二（冪集 Power Set）
+問題二（冪集 Power Set）
 
 ## 解題說明
 
-本題要求實現一個遞迴函式，找出給定集合的所有可能子集（Powerset），並按照特定格式輸出。
-
-### 解題策略
-
-1. 使用布林陣列 `chosen[]` 記錄每個元素是否被選入子集，透過遞迴函式處理「選」與「不選」兩條分支，並不斷前進到下一個 `index`。
-2. 當 `index == m`（集合大小）時作為 Base Case 觸發輸出，表示所有元素已決定完畢。
-3. 輸出時使用全域變數 `is_first_subset` 與區域變數 `first_element` 精準控制子集與元素之間的逗號排版。
+主要概念：遞迴 vs 自建堆疊 (Stack)這題的目的是實作一個數學函數，並且比較「遞迴寫法」與「非遞迴寫法」的差異。具體步驟：遞迴版 (Recursive)：最直覺的寫法，就是直接把題目給的數學公式翻譯成 if-else 程式碼。雖然寫起來很短很簡單，但因為這個函數的計算層數非常深，數字只要稍微大一點，電腦的系統記憶體就會爆炸，造成程式當機 (Stack Overflow)。非遞迴版 (Non-recursive)：為了解決遞迴會當機的問題，我們改用 while 迴圈來做。我們自己建立一個陣列當作「堆疊 (Stack)」，用來代替電腦記住「還沒算完的數字 $m$」。程式在迴圈裡，會不斷把數字從堆疊拿出來看，依照公式規則更新數字 $n$，或是把新的數字推回堆疊裡。等到堆疊完全清空，沒有數字需要算的時候，留下來的 $n$ 就是最後的答案。這個方法比較複雜，但執行起來更安全。
 
 ## 程式實作
 
@@ -157,84 +176,101 @@ Ackermann Non-recursive A(2, 2) = 7
 ```cpp
 #include <iostream>
 #include <algorithm>
+
 using namespace std;
 
-// 移除全域變數，將 m 與 is_first_subset 透過參數傳遞
-void powerset(int index, int m, bool* chosen, char* p, bool& is_first_subset)
+// 全域變數
+char p[100];
+bool chosen[100];
+int m = 0;
+bool is_first = true;
+
+void powerset(int index) 
 {
-    if (index == m)
+    if (index == m) 
     {
-        if (!is_first_subset)
+        if (is_first == false) 
+        {
             cout << ", ";
-        is_first_subset = false;
+        }
+        is_first = false;
 
         cout << "(";
-        bool first_element = true;
-        for (int i = 0; i < m; i++)
+        bool first_char = true;
+        for (int i = 0; i < m; i++) 
         {
-            if (chosen[i])
+            if (chosen[i] == true) 
             {
-                if (!first_element)
+                if (first_char == false) 
+                {
                     cout << ",";
+                }
                 cout << p[i];
-                first_element = false;
+                first_char = false;
             }
         }
         cout << ")";
-        return;
+        return; 
     }
 
-    // 第一條路：不選目前的元素
     chosen[index] = false;
-    powerset(index + 1, m, chosen, p, is_first_subset);
+    powerset(index + 1); 
 
-    // 第二條路：選目前的元素
     chosen[index] = true;
-    powerset(index + 1, m, chosen, p, is_first_subset);
+    powerset(index + 1); 
 }
 
-int main()
+int main() 
 {
     int n;
+    
     cout << "Enter the number of characters: ";
-    if (!(cin >> n) || n < 0)
+    
+    while (cin >> n) 
     {
-        cout << "Please enter a non-negative integer.\n";
-        return 1;
-    }
 
-    char* p = new char[n];
-    cout << "Enter the characters (for example: a b c): ";
-    for (int i = 0; i < n; i++)
-    {
-        if (!(cin >> p[i]))
+        if (n < 0) 
         {
-            delete[] p;
-            cout << "Invalid input.\n";
-            return 1;
+            cout << "Please enter a non-negative integer.\n";
+   
+            cout << "Enter the number of characters: ";
+            continue; 
         }
+
+        // 要把狀態重置
+        m = 0;
+        is_first = true;
+
+ 
+        cout << "Enter the characters (for example: a b c): ";
+        
+        char temp[100];
+        for (int i = 0; i < n; i++) 
+        {
+            cin >> temp[i];
+        }
+
+        //排序
+        sort(temp, temp + n);
+
+        //土法煉鋼去重複
+        for (int i = 0; i < n; i++) 
+        {
+            if (i == 0 || temp[i] != temp[i - 1]) 
+            {
+                p[m] = temp[i];
+                m++; 
+            }
+        }
+
+        cout << "powerset(S) = {";
+        powerset(0);
+        cout << "}\n\n"; 
+
+  
+        cout << "Enter the number of characters: ";
     }
 
-    // 先排序，讓相同的字元相鄰
-    sort(p, p + n);
-
-    //利用 <algorithm> 的 unique 函數自動去重複，取代原本的手動迴圈
-    // unique 會將不重複的元素移到陣列前方，並回傳新陣列的結尾指標
-    int m = unique(p, p + n) - p; 
-
-    // 加上 () 直接將動態陣列全部初始化為 false
-    bool* chosen = new bool[m](); 
-    bool is_first_subset = true;
-
-    cout << "powerset(S) = {";
-    
-    // 將 m 與 is_first_subset 傳入遞迴
-    powerset(0, m, chosen, p, is_first_subset);
-    
-    cout << "}\n";
-
-    delete[] chosen;
-    delete[] p;
     return 0;
 }
 ```
@@ -264,17 +300,22 @@ powerset(S) = {(), (c), (b), (b,c), (a), (a,c), (a,b), (a,b,c)}
 
 ### 結論
 
-1. 程式能正確計算並展開集合 $S$ 的所有子集。
-2. 透過 `is_first_subset` 與 `first_element` 的布林狀態控制，成功實作了符合題目嚴格要求的括號與逗號排版。
-3. 主程式與遞迴函式權責分明，主程式處理完字元排序與記憶體配置後，將搜尋工作完美交給了遞迴核心。
+1. 程式能正確找出輸入字元的所有可能組合（子集）。
+2. 具備防呆機制，若使用者輸入負數，程式會擋下來並引導重新輸入。
+3. 程式能自動過濾掉重複的字母，確保印出來的集合符合數學定義，測試結果皆正確。
 
 ## 申論及開發報告
 
-### 選擇 Backtracking 遞迴探勘的原因
+### 選擇遞迴的原因
 
-在本程式中，使用遞迴計算 Powerset 的主要原因如下：
+在本程式中，選擇使用遞迴來尋找子集的原因如下：
 
-1. **二元樹結構的完美對應**
-   子集的生成本質上是一個深度優先搜尋（DFS）的過程。對於每一個位置的元素，我們設定 `chosen[index] = false` 與 `chosen[index] = true` 來模擬走訪二元樹的左右分支，直到到達葉節點（`index == m`）才將累積的結果印出。這比起使用位元運算（Bit Manipulation）來得更加直觀且符合資料結構的教學邏輯。
-2. **免去複雜的字串疊加操作**
-   受限於可用標頭檔，我們無法輕易使用 `<vector><string>` 收集所有結果再統一處理。透過傳遞一個全域的狀態陣列 `chosen` 搭配即時輸出的策略（On-the-fly printing），大幅降低了記憶體的消耗，也避開了繁瑣的字串切割與重組。
+邏輯像「是非題」一樣簡單
+遞迴的寫法能夠很直覺地表達「選擇」的過程。針對每一個字母，我們只需要決定兩條路：「要選」或「不要選」。
+
+程式碼乾淨好懂
+如果不使用遞迴，要找出所有子集通常需要寫很複雜的多層迴圈或是二進位運算。使用遞迴，程式碼只需要呼叫自己兩次（一條路選、一條路不選），非常的適合用來學習與理解。
+
+內建自動「退回」的功能 (回溯)
+遞迴最大的好處是，當我們走到最後、印出一組答案後，程式會自動「退回」上一層，繼續來嘗試剛剛還沒走過的另一條路。這樣就不需用額外寫程式去記住剛剛走到哪裡。
+
