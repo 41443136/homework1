@@ -157,24 +157,23 @@ Ackermann Non-recursive A(2, 2) = 7
 ```cpp
 #include <iostream>
 #include <algorithm>
-#include <string>
-
 using namespace std;
-// 全域變數
-int m;
-bool is_first_subset = true;
 
-void powerset(int index, bool* chosen, char* p) {
-    // Base Case：所有元素都已走訪
-    if (index == m) {
+// 移除全域變數，將 m 與 is_first_subset 透過參數傳遞
+void powerset(int index, int m, bool* chosen, char* p, bool& is_first_subset)
+{
+    if (index == m)
+    {
         if (!is_first_subset)
             cout << ", ";
         is_first_subset = false;
 
         cout << "(";
         bool first_element = true;
-        for (int i = 0; i < m; i++) {
-            if (chosen[i]) {
+        for (int i = 0; i < m; i++)
+        {
+            if (chosen[i])
+            {
                 if (!first_element)
                     cout << ",";
                 cout << p[i];
@@ -185,34 +184,57 @@ void powerset(int index, bool* chosen, char* p) {
         return;
     }
 
-    // 分支 1：不放入目前元素
+    // 第一條路：不選目前的元素
     chosen[index] = false;
-    powerset(index + 1, chosen, p);
+    powerset(index + 1, m, chosen, p, is_first_subset);
 
-    // 分支 2：放入目前元素
+    // 第二條路：選目前的元素
     chosen[index] = true;
-    powerset(index + 1, chosen, p);
+    powerset(index + 1, m, chosen, p, is_first_subset);
 }
 
-int main() {
-    string input = "abc";
-    m = input.length();
-    
-    char* p = new char[m];
-    for (int i = 0; i < m; i++) {
-        p[i] = input[i];
+int main()
+{
+    int n;
+    cout << "Enter the number of characters: ";
+    if (!(cin >> n) || n < 0)
+    {
+        cout << "Please enter a non-negative integer.\n";
+        return 1;
     }
-    sort(p, p + m); // 確保集合元素有序
-    
-    bool* chosen = new bool[m];
-    
-    cout << "powerset(S) = {";
-    powerset(0, chosen, p);
-    cout << "}\n";
-    
-    delete[] p;
-    delete[] chosen;
 
+    char* p = new char[n];
+    cout << "Enter the characters (for example: a b c): ";
+    for (int i = 0; i < n; i++)
+    {
+        if (!(cin >> p[i]))
+        {
+            delete[] p;
+            cout << "Invalid input.\n";
+            return 1;
+        }
+    }
+
+    // 先排序，讓相同的字元相鄰
+    sort(p, p + n);
+
+    //利用 <algorithm> 的 unique 函數自動去重複，取代原本的手動迴圈
+    // unique 會將不重複的元素移到陣列前方，並回傳新陣列的結尾指標
+    int m = unique(p, p + n) - p; 
+
+    // 加上 () 直接將動態陣列全部初始化為 false
+    bool* chosen = new bool[m](); 
+    bool is_first_subset = true;
+
+    cout << "powerset(S) = {";
+    
+    // 將 m 與 is_first_subset 傳入遞迴
+    powerset(0, m, chosen, p, is_first_subset);
+    
+    cout << "}\n";
+
+    delete[] chosen;
+    delete[] p;
     return 0;
 }
 ```
