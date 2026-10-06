@@ -1,4 +1,4 @@
-# 41143263
+# 41443136
 
 作業一：問題一（阿克曼函數 Ackermann's Function）
 
@@ -54,7 +54,7 @@ int pop_stack(int* s, int& top) {
     return s[top--];
 }
 
-// 非遞迴版本
+// 非遞迴版
 int ackermann_nonrecursive(int m, int n) {
     int capacity = 16; // 初始容量
     int top = -1;
@@ -160,7 +160,6 @@ Ackermann Non-recursive A(2, 2) = 7
 #include <string>
 
 using namespace std;
-
 // 全域變數
 int m;
 bool is_first_subset = true;
@@ -213,7 +212,7 @@ int main() {
     
     delete[] p;
     delete[] chosen;
-    
+
     return 0;
 }
 ```
